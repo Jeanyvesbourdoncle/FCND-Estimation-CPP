@@ -137,7 +137,7 @@ You can find the equations for th implementation.
 </p> 
 
 <p align="center">
-<img src="./images/Transition_Function.png" width="50% style = "border:none;">
+<img src="./images/Tranistion_Function.png" width="50% style = "border:none;">
 </p> 
 
 <p align="center">
