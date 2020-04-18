@@ -152,8 +152,10 @@ You can find the equations for th implementation.
 
 --------------------------------------------------------------
 #### Measurement Model (EKF) with Controller
+
 As the IMU is use as control input, it's not useful to provide measurement model for the IMU.
 
+--------------------------------------------------------------
 ##### Measurement Model (EKF) : Magnetometer Update (EKF) with Controller
 The Reading from the magnetometer reporting yaw is in the global frame.
 
@@ -170,6 +172,7 @@ The results are :
 <img src="./videos/Magnetometre_Update.gif" width="50% style = "border:none;">
 </p> 
 
+-----------------------------------------------------------------
 ##### Measurement Model : Closed Loop + GPS Update (EKF) with Controller 
 Position and Velocity comes from the GPS. The heading from the GPS is not present in the measurement model h.
 
