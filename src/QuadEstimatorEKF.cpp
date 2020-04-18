@@ -88,20 +88,24 @@ void QuadEstimatorEKF::UpdateFromIMU(V3F accel, V3F gyro)
   //    2) use the Quaternion<float> class, which has a handy FromEuler123_RPY function for creating a quaternion from Euler Roll/PitchYaw
   //       (Quaternion<float> also has a IntegrateBodyRate function, though this uses quaternions, not Euler angles)
 
-  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+ /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // SMALL ANGLE GYRO INTEGRATION:
-  // (replace the code below)
-  // make sure you comment it out when you add your own code -- otherwise e.g. you might integrate yaw twice
 
-  float predictedPitch = pitchEst + dtIMU * gyro.y;
-  float predictedRoll = rollEst + dtIMU * gyro.x;
-  ekfState(6) = ekfState(6) + dtIMU * gyro.z;	// yaw
+  // EFK State xt (State at time t) has 6 variables: [x, y, z, vx, vy, vz, YAW]
+  // Complementary Filter = [theta, phi] and the Yaw is defined as ekfstate(6) because the Yaw is a variable in the EKF State
+  Quaternion<float> q_t = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, ekfState(6)); //ekfstate(6) = yaw
+  Quaternion<float> dq; // quaternion definition for the  the measurement of the angular rates from the IMU in the body frame  
+  dq.IntegrateBodyRate(gyro, dtIMU); // body rates must be expressed in the body coordinate frame
+  Quaternion<float> q_t_bar = dq * q_t; // predicted quaternion
+  
+  float predictedRoll = q_t_bar.Roll(); // Theta_t = Pitch (qt_bar)
+  float predictedPitch = q_t_bar.Pitch(); // Phi_t = Roll (qt_bar)
+  ekfState(6) = q_t_bar.Yaw(); // ekfState(6) = Yaw_t = Yaw (qt_bar)
 
   // normalize yaw to -pi .. pi
   if (ekfState(6) > F_PI) ekfState(6) -= 2.f*F_PI;
   if (ekfState(6) < -F_PI) ekfState(6) += 2.f*F_PI;
-
-  /////////////////////////////// END STUDENT CODE ////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // CALCULATE UPDATE
   accelRoll = atan2f(accel.y, accel.z);
@@ -160,15 +164,28 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
 
   Quaternion<float> attitude = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, curState(6));
 
-  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  // EKF State = [x, y, z, vx, vy, vz, yaw]
+  // Transition Function - Part 1 :  x,y,z prediction 
+  predictedState(0) = curState(0) + curState(3) *dt;
+  predictedState(1) = curState(1) + curState(4) *dt;
+  predictedState(2) = curState(2) + curState(5) *dt;
 
-
-  /////////////////////////////// END STUDENT CODE ////////////////////////////
+  // Controls vector u = acc_x_b, acc_y_b, acc_z_b, yaw_change integration
+  // Transition Function - Part 2, ut is the control input vector : acceleration in the body frame : ut = [x_dot_dot, y_dot_dot, z_dot_dot, yaw_dot]
+  // Use of the Rgb matrix, which rotates from the body frame to the global frame
+  V3F Rbg = attitude.Rotate_BtoI(accel);
+  predictedState(3) = curState(3) + Rbg.x * dt;
+  predictedState(4) = curState(4) + Rbg.y * dt;
+  predictedState(5) = curState(5) + (-9.81 + Rbg.z) * dt;
+  //predictedState(6) = yaw, not present because already integrated in UpdateFromIMU
+ ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
 
   return predictedState;
 }
 
-MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
+MatrixXf QuadEstimatorEKF::GetRbgPrime(float phi, float theta, float psi)
 {
   // first, figure out the Rbg_prime
   MatrixXf RbgPrime(3, 3);
@@ -187,10 +204,21 @@ MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
   // - You can also do some numerical partial derivatives in a unit test scheme to check 
   //   that your calculations are reasonable
 
-  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+  /////////////////////////////////////////////////////////
+  // Rbg Prime matrix Defintion  --> useful for the Jocabian Calculation
+  RbgPrime(0, 0) = -cos(theta) * sin(psi);
+  RbgPrime(0, 1) = -sin(phi) * sin(theta) * sin(psi) - cos(phi) * cos(psi);
+  RbgPrime(0, 2) = -cos(phi) * sin(theta) * sin(psi) + sin(phi) * cos(psi);
 
+  RbgPrime(1, 0) = cos(theta) * cos(psi);
+  RbgPrime(1, 1) = sin(phi) * sin(theta) * cos(psi) - cos(phi) * sin(psi);
+  RbgPrime(1, 2) = cos(phi) * sin(theta) * cos(psi) + sin(phi) * sin(psi);
 
-  /////////////////////////////// END STUDENT CODE ////////////////////////////
+  RbgPrime(2,0) = 0.f;
+  RbgPrime(2,1) = 0.f;
+  RbgPrime(2,2) = 0.f;
+
+  ///////////////////////////////////////////////////////////
 
   return RbgPrime;
 }
@@ -233,10 +261,23 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
   MatrixXf gPrime(QUAD_EKF_NUM_STATES, QUAD_EKF_NUM_STATES);
   gPrime.setIdentity();
 
-  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+  /////////////////////////////////////////////////////////
+ 
+  // Implementation of the Jacobian Matrix g' in accordance with the equations described in the course 
 
+  gPrime(0,3) = dt;
+  gPrime(1,4) = dt;
+  gPrime(2,5) = dt;
 
-  /////////////////////////////// END STUDENT CODE ////////////////////////////
+  gPrime(3,6) = RbgPrime(0,0) * accel.x * dt + RbgPrime(0,1) * accel.y * dt + RbgPrime(0,2) * accel.z * dt;
+  gPrime(4,6) = RbgPrime(1,0) * accel.x * dt + RbgPrime(1,1) * accel.y * dt + RbgPrime(1,2) * accel.z * dt;
+  gPrime(5,6) = RbgPrime(2,0) * accel.x * dt + RbgPrime(2,1) * accel.y * dt + RbgPrime(2,2) * accel.z * dt;
+
+  // New Covariance calculation ekfCov
+  // Q is the noise for the predict state
+  // Use of the function .transpose(), because I received an error for the use of the function .transposeplace()
+  ekfCov = gPrime * (ekfCov * gPrime.transpose()) + Q; // New covariance after a "Predict Step" (with the noise Q implemented) 
+  ///////////////////////////////////////////////////////////
 
   ekfState = newState;
 }
@@ -258,9 +299,28 @@ void QuadEstimatorEKF::UpdateFromGPS(V3F pos, V3F vel)
   // Hints: 
   //  - The GPS measurement covariance is available in member variable R_GPS
   //  - this is a very simple update
-  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  /////////////////////////////// END STUDENT CODE ////////////////////////////
+  /////////////////////////////////////////////////////////
+  // h is the measurement model : h = [x_x, x_y, x_z, x_xdot, x_y_dot, x_z_dot]
+  // Partial derivative hprime is the identity matrix augmented with a vector of 0
+  hPrime(0,0) = 1.f;
+  hPrime(1,1) = 1.f;
+  hPrime(2,2) = 1.f;
+  hPrime(3,3) = 1.f;
+  hPrime(4,4) = 1.f;
+  hPrime(5,5) = 1.f;
+  // The Yaw is update with the magnetometer that wiht hPrime(6,6) = 0.f
+
+  zFromX(0) = ekfState(0); //x 
+  zFromX(1) = ekfState(1); //y
+  zFromX(2) = ekfState(2); //z
+  zFromX(3) = ekfState(3); //x_dot
+  zFromX(4) = ekfState(4); //y_dot
+  zFromX(5) = ekfState(5); //z_dot
+  // The Yaw is update with the magnetometer (and not with the GPS)
+
+
+  ///////////////////////////////////////////////////////////
 
   Update(z, hPrime, R_GPS, zFromX);
 }
@@ -279,10 +339,22 @@ void QuadEstimatorEKF::UpdateFromMag(float magYaw)
   //  - Make sure to normalize the difference between your measured and estimated yaw
   //    (you don't want to update your yaw the long way around the circle)
   //  - The magnetomer measurement covariance is available in member variable R_Mag
-  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+  /////////////////////////////////////////////////////////
 
+  // consideration : reading the magnetometer reporting yaw in the global frame 
+  // the R_Mag Noise (for the magnetometer measurement update) was not implemented 
 
-  /////////////////////////////// END STUDENT CODE ////////////////////////////
+  hPrime(6) = 1.f; // the magnetometer updates the yaw variable  
+  zFromX = hPrime * ekfState; // h' is the jocabian, but all is linear, the derivative of the matrix h is a matrix of 0 and 1.
+  
+  float yaw_error = z(0) - zFromX(0); // error between the mesure updated and the predicted measure 
+  if ( yaw_error > F_PI) {
+      zFromX(0) += 2 * F_PI;
+  }
+  if (yaw_error < -F_PI) {
+      zFromX(0) -= 2 * F_PI;
+  }
+  ///////////////////////////////////////////////////////////
 
   Update(z, hPrime, R_Mag, zFromX);
 }
