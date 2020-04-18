@@ -113,7 +113,7 @@ Part 2 :  Nonlinear complementary filter part (Roll and Pitch)
  	- Use of the state to define a quaternion qt for the Euler angle,
 	- Definition of qt to be a quaternion for the measurement of the angular rates from the IMU in the body frame.		
 <p align="center">
-<img src="./images/Attitude.png" width="50% style = "border:none;">
+<img src="./images/Attitude.png" width="100% style = "border:none;">
 </p> 
 
 
