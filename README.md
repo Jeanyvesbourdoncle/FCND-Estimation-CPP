@@ -81,8 +81,8 @@ If the IMU is used as measurement and the commanded controls as the control inpu
 The GPS and accelerometers data are provided.  
 
 The target is to calculate the noise standard deviation of the provided data over a couple of seconds (between 9 and 10 seconds)
-	- 10 Hz for the GPS,
-	- 10 kHz for the accelerometer.
+ - 10 Hz for the GPS,
+ - 10 kHz for the accelerometer.
 
 The requirement defines a standard deviation with a sufficient capture of the GPS and accelerometers measurements.
 
