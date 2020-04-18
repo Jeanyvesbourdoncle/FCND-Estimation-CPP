@@ -86,9 +86,11 @@ The target is to calculate the noise standard deviation of the provided data ove
 
 The requirement defines a standard deviation with a sufficient capture of the GPS and accelerometers measurements.
 
-The data results graph1.txt and graph2.txt are in two csv files for the mean and covariance calculation(in Excel).
+The data results graph1.txt and graph2.txt are in two csv files for the mean and covariance calculation (in Excel).
 
-In this excel file, the mean and the standard deviation are calculated with very simple excel macro and are located in config/log/Graph1.pdf and config/log/Graph2.pdf. The mean and the standard deviation (for the configuration in sensornoise.txt) are at the end of the pdf file.
+In this excel file, the mean and the standard deviation are calculated with very simple excel macro and are located in config/log/Graph1.pdf and config/log/Graph2.pdf. 
+
+The mean and the standard deviation (for the configuration in sensornoise.txt) are at the end of the pdf file.
 
 Finally, the two calculated standard deviation (GPS and Acceleration) will be implemented in the configuration file config/6 Sensornoise.txt.
   		
