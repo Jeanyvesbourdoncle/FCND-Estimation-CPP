@@ -2,7 +2,7 @@
  
 ---------------------
 ### Final Results
-The target of this project is to implement an estimator. 
+The target of this project is to implement an estimator for a three dimensional quad. 
 
 The role of the estimator is to estimate the state of the vehicle in a real stochastic world with the integration of data (from noisy
 but complementary sensors) over the time.
@@ -56,17 +56,11 @@ This 4 measurements comes directly from the IMU Measurements :
 	
 - the yaw rate comes from the rate gyroscope.
 
-In reality, the IMU is used as control input, because the measurements made by the IMU reflects more the reality as the standard control 
+In reality, the IMU is used as control input, because the measurements made by the IMU reflects more the reality as the standard control command (collective thrust + 3 Moments).
 
-command (collective thrust + 3 Moments).
+As the IMU measures directly these accelerations and accelerations are in some sense what we control when the drone moves, we can justify the use of IMU as control input.
 
-As the IMU measures directly these accelerations and accelerations are in some sense what we control when the drone moves, we can 
-
-justify the use of IMU as control input.
-
-If the IMU is used as measurement and the commanded controls as the control input, the state vector and the Jacobian will be more 
-
-complex and bigger. 
+If the IMU is used as measurement and the commanded controls as the control input, the state vector and the Jacobian will be more complex and bigger. 
 
 <p align="center">
 <img src="./images/State_Variable+Accelerations.png" width="50% style = "border:none;">
@@ -75,12 +69,12 @@ complex and bigger.
 -------------------------------------------------------
 ### SW Pipeline
 
- - [Step 1: Sensor Noise](#step-1-sensor-noise)
- - [Step 2: Attitude Estimation](#step-2-attitude-estimation)
- - [Step 3: Prediction Step](#step-3-prediction-step)
- - [Step 4: Magnetometer Update](#step-4-magnetometer-update)
- - [Step 5: Closed Loop + GPS Update](#step-5-closed-loop--gps-update)
- - [Step 6: Adding Your Controller](#step-6-adding-your-controller)
+ - Step-1: Sensor noise
+ - Step-2: Attitude estimation
+ - Step-3: Prediction step
+ - Step 4: Magnetometer Update
+ - Step 5: Closed Loop + GPS Update
+ - Step 6: Adding Your Controller
 
 -------------------------------------------------------
 #### Sensor Noise
@@ -110,9 +104,7 @@ Part 1 :  Linear complementary filter part (Roll and Pitch)
 
 The Yaw is not estimated because we will use the magnetometer and do it in the GPS.
 
-The first part of the equation is a high pass filter (for the estimation with a risk of drift in the time (gyro)) and the second part is 
-
-a low pass filter (for the noisy estimation (accelerometer));
+The first part of the equation is a high pass filter (for the estimation with a risk of drift in the time (gyro)) and the second part is a low pass filter (for the noisy estimation (accelerometer));
 
 <p align="center">
 <img src="./images/Complementary_Filter.png" width="50% style = "border:none;">
@@ -147,7 +139,7 @@ You can find the equations for th implementation.
 </p> 
 
 <p align="center">
-<img src="./Images/Transition_Function.png" width="50% style = "border:none;">
+<img src="./images/Transition_Function.png" width="50% style = "border:none;">
 </p> 
 
 <p align="center">
