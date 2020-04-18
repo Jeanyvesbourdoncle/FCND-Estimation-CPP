@@ -88,7 +88,7 @@ The requirement defines a standard deviation with a sufficient capture of the GP
 
 The data results graph1.txt and graph2.txt are exported in two csv files for the mean and covariance calculation (standard macro excel).
 
-In this excel file, the mean and the standard deviation are calculated with very simple excel macro and are located in config/log/Graph1.csv and config/log/Graph2.csv. 
+In this excel file, the mean and the standard deviation are calculated with very simple excel macro and are located in config/log/Graph1.pdf and config/log/Graph2.pdf. 
 
 Finally, the two calculated standard deviation (for the GPS and and for the Accelerater) will be implemented in the configuration file config/6 Sensornoise.txt.
   		
