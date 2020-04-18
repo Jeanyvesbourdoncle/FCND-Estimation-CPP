@@ -80,19 +80,17 @@ If the IMU is used as measurement and the commanded controls as the control inpu
 #### Sensor Noise
 The GPS and accelerometers data are provided.  
 
-The target is to calculate the noise standard deviation of the provided data over a couple of seconds at 
+The target is to calculate the noise standard deviation of the provided data over a couple of seconds (between 9 and 10 seconds)
 	- 10 Hz for the GPS,
 	- 10 kHz for the accelerometer.
 
 The requirement defines a standard deviation with a sufficient capture of the GPS and accelerometers measurements.
 
-The data results graph1.txt and graph2.txt are in two csv files for the mean and covariance calculation(in Excel). 
+The data results graph1.txt and graph2.txt are in two csv files for the mean and covariance calculation(in Excel).
 
-The results are located in config/log/Graph1.pdf and config/log/Graph2.pdf. 
+In this excel file, the mean and the standard deviation are calculated with very simple excel macro and are located in config/log/Graph1.pdf and config/log/Graph2.pdf. The mean and the standard deviation (for the configuration in sensornoise.txt) are at the end of the pdf file.
 
-Finally, the two calculated standard deviation (GPS and Acceleration) will be implemented in the configuration file config/6-
-
-Sensornoise.txt.
+Finally, the two calculated standard deviation (GPS and Acceleration) will be implemented in the configuration file config/6 Sensornoise.txt.
   		
 <p align="center">
 <img src="./videos/sensor_noise.gif" width="50% style = "border:none;">
