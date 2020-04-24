@@ -1,4 +1,4 @@
-## State Estimation of a 3D Quad with the use of Bayes Rules (EKF)
+## State Estimation of a 3D Quad with the use of Bayes Rules (Extended Kalman Filter)
  
 ---------------------
 ### Final Results
